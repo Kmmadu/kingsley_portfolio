@@ -1,5 +1,6 @@
 import streamlit as st
 from PIL import Image
+import base64
 
 # ------------------ PAGE CONFIG ------------------ #
 st.set_page_config(
@@ -8,56 +9,62 @@ st.set_page_config(
     layout="wide"
 )
 
-# ------------------ LOAD IMAGES ------------------ #
-homepage_image = Image.open("assets/profile_photos/profile_image.png")  # Homepage
-sidebar_image = Image.open("assets/profile_photos/sidebar_image.png")   # Sidebar
+def get_image_base64(path):
+    with open(path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode()
+        
+# Load images once and use base64 for HTML rendering
+sidebar_image = get_image_base64("assets/profile_photos/sidebar_image.png")
+homepage_image = get_image_base64("assets/profile_photos/profile_image.png")
 
 # ------------------ CUSTOM STYLE ------------------ #
 st.markdown("""
     <style>
-        .main {
-            background-color: #0f0f0f;
-            color: white;
-        }
-        h1, h3, p {
-            font-family: 'Segoe UI', sans-serif;
-        }
-        .work-title {
-            color: gold;
-            font-size: 1.8rem;
-            text-align: center;
-            font-weight: bold;
-            margin-top: 3rem;
-        }
+        /* Existing styles remain the same */
         .profile-pic-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 30px;
-        }
-        .circular-img {
-            border-radius: 50%;
             width: 280px;
             height: 280px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 20px auto;
+            border: 3px solid gold;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+        /* Add this new class for sidebar image */
+        .sidebar-profile-img {
+            width: 70% !important;
+            height: auto;
+            aspect-ratio: 1/1;
+            max-width: 200px;
+            border-radius: 50%;
             object-fit: cover;
+            border: 2px solid gold;
+            margin: 0 auto 20px auto;
+             box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
         }
     </style>
 """, unsafe_allow_html=True)
 
 # ------------------ SIDEBAR PROFILE ------------------ #
-# Add to sidebar
 with st.sidebar:
-    # Profile Image
-    st.image(sidebar_image, width=150)  # Adjust width as needed
-    
-    # Name and Title
-    st.markdown("""
+    # Circular profile image using HTML/CSS
+    st.markdown(f"""
+    <div style="display: flex; justify-content: center;">
+        <img src="data:image/png;base64,{sidebar_image}" class="sidebar-profile-img">
+    </div>
     <div style="text-align: center;">
         <h3 style="color: gold; margin: 10px 0 5px 0;">Kingsley</h3>
-        <p style="color: white; margin: 0;">Data Analyst</p>
+        <p style="color: white; margin: 0; text-transform: uppercase; 
+           letter-spacing: 1px; font-size: 0.9rem;">
+            Data Analyst
+        </p>
     </div>
     """, unsafe_allow_html=True)
-
+    
+    st.markdown("---")
+    
 # ------------------ HERO SECTION ------------------ #
 col1, col2 = st.columns([2, 1], gap="large")
 
@@ -72,9 +79,12 @@ with col1:
     """, unsafe_allow_html=True)
 
 with col2:
-    st.markdown("""<div class="profile-pic-container">""", unsafe_allow_html=True)
-    st.image(homepage_image, width=280)
-    st.markdown("""</div>""", unsafe_allow_html=True)
+    # Use HTML/CSS for circular image with hover effect
+    st.markdown(f"""
+    <div class="profile-pic-container">
+        <img class="circular-img" src="data:image/png;base64,{homepage_image}">
+    </div>
+    """, unsafe_allow_html=True)
 
 # ------------------ CONTACT BUTTONS ------------------ #
 st.markdown("""
