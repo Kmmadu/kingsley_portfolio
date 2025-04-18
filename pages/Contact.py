@@ -1,4 +1,43 @@
 import streamlit as st
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+
+
+
+def send_email(name, email, subject, message):
+    sender_email = EMAIL_ADDRESS
+    sender_password = EMAIL_PASSWORD
+    receiver_email = EMAIL_ADDRESS 
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = sender_email
+    msg["To"] = receiver_email
+
+    html_body = f"""
+    <p><strong>Name:</strong> {name}</p>
+    <p><strong>Email:</strong> {email}</p>
+    <p><strong>Message:</strong><br>{message}</p>
+    """
+    msg.attach(MIMEText(html_body, "html"))
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, receiver_email, msg.as_string())
+        return True
+    except Exception as e:
+        print("Error:", e)
+        return False
+
 
 def contact_section():
     st.markdown("""
@@ -7,37 +46,37 @@ def contact_section():
             font-size: 2.5rem;
             color: gold;
             text-align: center;
-            margin: 3rem 0;
+            margin: 3rem 0 2rem 0;
             text-transform: uppercase;
+            letter-spacing: 1.5px;
         }
-        .contact-info {
-            background: #1a1a1a;
-            padding: 2rem;
-            border-radius: 10px;
-            border-left: 4px solid gold;
-            margin-bottom: 2rem;
-            height: 100%;
+        .contact-info-box {
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            gap: 2rem;
+            padding: 1rem 0;
         }
-        .info-title {
-            color: gold;
-            margin: 1rem 0;
-            font-size: 1.1rem;
-            padding: 0.8rem;
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: #1a1a1a;
+            padding: 1rem;
             border-radius: 8px;
-            background: rgba(255, 215, 0, 0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(255, 215, 0, 0.1);
         }
-        .info-title:hover {
-            background: rgba(255, 215, 0, 0.2) !important;
+        .info-icon {
+            font-size: 1.5rem;
+            color: gold;
+            width: 30px;
+            text-align: center;
         }
-        .info-title a {
-            color: inherit;
-            text-decoration: none;
+        .info-text {
+            color: #ddd;
+            font-size: 1rem;
         }
+
+        /* Input Styling */
         .stTextInput>div>div>input, 
         .stTextArea>div>textarea {
             background-color: #1a1a1a !important;
@@ -48,6 +87,7 @@ def contact_section():
         .stTextArea>label {
             color: #ddd !important;
         }
+
         .form-button {
             background: gold !important;
             color: #0f0f0f !important;
@@ -62,53 +102,47 @@ def contact_section():
             box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3) !important;
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="contact-header">Get in Touch</div>', unsafe_allow_html=True)
-    
+    st.markdown('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">', unsafe_allow_html=True)
+
+    st.markdown('<div class="contact-header">Contact</div>', unsafe_allow_html=True)
     col1, col2 = st.columns([1, 1], gap="large")
 
     with col1:
         st.markdown("""
-        <div class="contact-info">
-            <h4 class="info-title">
-                <i class="fas fa-envelope"></i>
-                <a href="mailto:mmadubugwukingsley@gmail.com">mmadubugwukingsley@gmail.com</a>
-            </h4>
-            
-            <h4 class="info-title">
-                <i class="fas fa-map-marker-alt"></i>
-                14b Ibironke, Lagos
-            </h4>
-            
-            <h4 class="info-title">
-                <i class="fas fa-phone"></i>
-                <a href="tel:+2349076055774">+234 907 605 5774</a>
-            </h4>
+        <div class="contact-info-box">
+            <div class="info-item">
+                <span class="info-icon"><i class="fas fa-envelope"></i></span>
+                <span class="info-text">mmadubugwukingsley@gmail.com</span>
+            </div>
+            <div class="info-item">
+                <span class="info-icon"><i class="fas fa-map-marker-alt"></i></span>
+                <span class="info-text">14b Ibironke Street, Lagos, Nigeria</span>
+            </div>
+            <div class="info-item">
+                <span class="info-icon"><i class="fas fa-phone"></i></span>
+                <span class="info-text">+234 907 605 5774</span>
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
     with col2:
         with st.form("contact_form", clear_on_submit=True):
-            name = st.text_input("Full Name*")
+            name = st.text_input("Name*")
             email = st.text_input("Email*")
             subject = st.text_input("Subject*")
             message = st.text_area("Message*", height=150)
-            submitted = st.form_submit_button("SEND MESSAGE")
+            submitted = st.form_submit_button("SEND MESSAGE", type="primary")
         
         if submitted:
             if name and email and subject and message:
-                mailto_link = f"mailto:mmadubugwukingsley@gmail.com?subject={subject}&body=From: {name} <{email}>%0A%0A{message}"
-                st.success("📬 Message sent successfully!")
-                st.markdown(f"""
-                    <div style="margin-top: 1rem;">
-                        <a href="{mailto_link}" target="_blank" 
-                           style="color: gold; text-decoration: none;">
-                           <i class="fas fa-external-link-alt"></i> Open email client
-                        </a>
-                    </div>
-                """, unsafe_allow_html=True)
+                success = send_email(name, email, subject, message)
+                if success:
+                    st.success("📬 Message sent successfully !")
+                else:
+                    st.error("❌ Failed to send message. Please try again later.")
+
             else:
                 st.error("❌ Please fill all required fields!")
 
